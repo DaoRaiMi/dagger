@@ -1,0 +1,30 @@
+name: dagger
+environment: dev
+debug: true
+
+token:
+  secret: "abc-xyz-3356"
+  expireDuration: "24h"
+  issuer: "Dagger"
+
+log:
+  level: "info"
+  fileName: "./dagger.log"
+  maxSize: 1
+  maxAge: 1
+
+mysql:
+  addr: "localhost:3306"
+  user: "dagger"
+  password: "123456"
+  db: "dagger"
+  charset: "utf8mb4"
+  collation: "utf8_general_ci"
+  maxIdleConns: 10
+  maxOpenConns: 100
+  maxAllowedPacket: 2048000000 # 2GB
+
+redis:
+  addr: "localhost:6379"
+  db: 0
+  password:
