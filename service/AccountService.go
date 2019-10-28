@@ -17,8 +17,6 @@ type AccountService interface {
 	Login(ctx context.Context, req *api.LoginRequest) (*api.LoginResponse, error)
 	// 注销
 	Logout(ctx context.Context, req *api.LogoutRequest) (*api.LogoutResponse, error)
-	// 获取用户Token信息
-	GetUserTokenInfo(ctx context.Context, req *api.GetUserTokenInfoRequest) (*api.GetUserTokenInfoResponse, error)
 	// 验证用户权限
 	ValidateUserPerm(ctx context.Context, req *api.ValidateUserPermRequest) (*api.ValidateUserPermResponse, error)
 }

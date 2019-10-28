@@ -90,9 +90,7 @@ type LoginResponse struct {
 }
 
 // 注销
-type LogoutRequest struct {
-	UserID uint64 `json:"user_id"`
-}
+type LogoutRequest struct{}
 type LogoutResponse struct{}
 
 // 获取用户Token信息

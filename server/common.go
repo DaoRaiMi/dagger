@@ -5,9 +5,12 @@ import (
 
 	"github.com/daoraimi/dagger/api"
 	"github.com/daoraimi/dagger/box/log"
+	"github.com/daoraimi/dagger/box/redis"
 	"github.com/daoraimi/dagger/config"
+	"github.com/daoraimi/dagger/share"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +24,7 @@ func RequireToken() gin.HandlerFunc {
 		}
 
 		var claim api.TokenClaim
-		_, err := jwt.ParseWithClaims(token, &claim, func(tk *jwt.Token) (i interface{}, e error) {
+		validToken, err := jwt.ParseWithClaims(token, &claim, func(tk *jwt.Token) (i interface{}, e error) {
 			return []byte(config.GetString("token.secret")), nil
 		})
 		if err != nil {
@@ -34,7 +37,17 @@ func RequireToken() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_id", claim.UserID)
+		// check token blacklist
+		exist, err := redis.R().Exists(share.GetKeyTokenBlacklist(claim.UserID, validToken.Signature)).Result()
+		if err != nil {
+			api.RespError(c, errors.WithStack(err))
+		}
+		if exist != 0 {
+			api.RespError(c, api.Error{api.Unauthorized, "Invalid Token"})
+		}
+
+		c.Set(share.ContextKeyUserID, claim.UserID)
+		c.Set(share.ContextKeyTokenSignature, validToken.Signature)
 
 		c.Next()
 	}
@@ -50,7 +63,6 @@ func CustomLogger() gin.HandlerFunc {
 		method := c.Request.Method
 		uri := c.Request.URL.RequestURI()
 		userAgent := c.Request.UserAgent()
-		//raw := c.Request.URL.RawQuery
 
 		c.Next()
 

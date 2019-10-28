@@ -8,8 +8,9 @@ import (
 	"github.com/daoraimi/dagger/box/log"
 	"github.com/daoraimi/dagger/box/orm"
 	"github.com/daoraimi/dagger/box/redis"
-	"github.com/daoraimi/dagger/dconst"
+	"github.com/daoraimi/dagger/config"
 	"github.com/daoraimi/dagger/model"
+	"github.com/daoraimi/dagger/share"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -43,7 +44,7 @@ func (a *Repo) AddUser(ctx context.Context, req *api.AddUserRequest) (*api.AddUs
 	}
 
 	// generate random password for new user
-	randomBytePassword := GenerateRandomPassword(dconst.RandomPasswordLength)
+	randomBytePassword := GenerateRandomPassword(share.RandomPasswordLength)
 	randomPassword, err := EncryptUserPassword(randomBytePassword)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -77,11 +78,11 @@ func (a *Repo) UpdateUser(ctx context.Context, req *api.UpdateUserRequest) (*api
 
 func (a *Repo) Login(ctx context.Context, req *api.LoginRequest) (*api.LoginResponse, error) {
 	// 检查登录失败次数
-	currentFailedLoginCount, err := redis.R().Get(GetKeyFailedLoginCount(req.Username)).Int()
+	currentFailedLoginCount, err := redis.R().Get(share.GetKeyFailedLoginCount(req.Username)).Int()
 	if err != nil && err != redis.Nil {
 		return nil, errors.WithStack(err)
 	}
-	if currentFailedLoginCount > dconst.MaxFailedLoginCount {
+	if currentFailedLoginCount > share.MaxFailedLoginCount {
 		log.Warn("用户失败登录次数过多，已锁定", zap.String("username", req.Username))
 		return nil, api.Error{Code: api.PermissionDenied, Msg: "登录失败次数过多，帐号被锁定"}
 	}
@@ -97,11 +98,11 @@ func (a *Repo) Login(ctx context.Context, req *api.LoginRequest) (*api.LoginResp
 	}
 
 	if !ValidateCredential([]byte(req.Password), []byte(user.Password)) {
-		_, err := redis.R().Incr(GetKeyFailedLoginCount(req.Username)).Result()
+		_, err := redis.R().Incr(share.GetKeyFailedLoginCount(req.Username)).Result()
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		_, err = redis.R().Expire(GetKeyFailedLoginCount(req.Username), time.Duration(dconst.KeyFailedLoginCountExpiration*time.Second)).Result()
+		_, err = redis.R().Expire(share.GetKeyFailedLoginCount(req.Username), time.Duration(share.KeyFailedLoginCountExpiration*time.Second)).Result()
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -135,11 +136,15 @@ func (a *Repo) Login(ctx context.Context, req *api.LoginRequest) (*api.LoginResp
 }
 
 func (a *Repo) Logout(ctx context.Context, req *api.LogoutRequest) (*api.LogoutResponse, error) {
-	return &api.LogoutResponse{}, nil
-}
+	userID := ctx.Value(share.ContextKeyUserID).(uint64)
+	signature := ctx.Value(share.ContextKeyTokenSignature).(string)
 
-func (a *Repo) GetUserTokenInfo(ctx context.Context, req *api.GetUserTokenInfoRequest) (*api.GetUserTokenInfoResponse, error) {
-	return &api.GetUserTokenInfoResponse{}, nil
+	_, err := redis.R().Set(share.GetKeyTokenBlacklist(userID, signature), 1, config.GetDuration("token.expireDuration")).Result()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return &api.LogoutResponse{}, nil
 }
 
 func (a *Repo) ValidateUserPerm(ctx context.Context, req *api.ValidateUserPermRequest) (*api.ValidateUserPermResponse, error) {

@@ -1,39 +1,23 @@
 package account
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/daoraimi/dagger/api"
-
 	"github.com/daoraimi/dagger/config"
-
+	"github.com/daoraimi/dagger/share"
 	"github.com/dgrijalva/jwt-go"
-
-	"github.com/daoraimi/dagger/dconst"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetKeyUserToken(userID uint64) string {
-	return fmt.Sprintf(dconst.UserTokenFormat, dconst.KeyPrefix, userID)
-}
-
-func GetKeyTokenInfo(token string) string {
-	return fmt.Sprintf(dconst.TokenInfoFormat, dconst.KeyPrefix, token)
-}
-
-func GetKeyFailedLoginCount(username string) string {
-	return fmt.Sprintf(dconst.FailedLoginCountFormat, dconst.KeyPrefix, username)
-}
-
 func GenerateRandomPassword(length int) []byte {
 	var pwd []byte
-	peLength := len(dconst.PasswordElements)
+	peLength := len(share.PasswordElements)
 	rand.Seed(time.Now().UnixNano())
 	for i := 0; i < length; i++ {
-		pwd = append(pwd, dconst.PasswordElements[rand.Intn(peLength)])
+		pwd = append(pwd, share.PasswordElements[rand.Intn(peLength)])
 	}
 	return pwd
 }
