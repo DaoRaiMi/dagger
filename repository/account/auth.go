@@ -73,6 +73,24 @@ func (a *Repo) DeleteUser(ctx context.Context, req *api.DeleteUserRequest) (*api
 }
 
 func (a *Repo) UpdateUser(ctx context.Context, req *api.UpdateUserRequest) (*api.UpdateUserResponse, error) {
+	updateSet := make(map[string]interface{})
+	if req.Nickname != "" {
+		updateSet["nickname"] = req.Nickname
+	}
+	if req.Phone != "" {
+		updateSet["phone"] = req.Phone
+	}
+	if req.Email != "" {
+		updateSet["email"] = req.Email
+	}
+	if req.Status != 0 {
+		updateSet["status"] = req.Status
+	}
+
+	if err := orm.R().Model(model.DaggerUser{}).Where("`id` = ?", req.UserID).Update(updateSet).Error; err != nil {
+		return nil, errors.WithStack(err)
+	}
+
 	return &api.UpdateUserResponse{}, nil
 }
 

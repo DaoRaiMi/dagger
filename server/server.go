@@ -27,6 +27,7 @@ func (s *Server) Run() error {
 	userRouter := rootRouter.Group("/dagger/users")
 	userRouter.Use(RequireToken())
 	userRouter.POST("", s.AccountServer.AddUserHandler)
+	userRouter.PATCH("/:user_id", s.AccountServer.UpdateUserHandler)
 	userRouter.POST("logout", s.AccountServer.LogoutHandler)
 
 	return rootRouter.Run()

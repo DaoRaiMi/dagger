@@ -10,10 +10,7 @@ func (s *Server) LoginHandler(c *gin.Context) {
 	var err error
 	var req api.LoginRequest
 
-	if err = c.MustBindWith(&req, binding.JSON); err != nil {
-		api.RespError(c, err)
-		return
-	}
+	_ = c.ShouldBindWith(&req, binding.JSON)
 
 	if err = req.Validate(); err != nil {
 		api.RespError(c, err)

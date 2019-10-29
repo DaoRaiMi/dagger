@@ -17,6 +17,7 @@ func init() {
 }
 
 // 添加帐号
+// 所有需要绑定的struct去掉binding:"required" 是为了方便统一错误处理，具体的验证由Validate()方法去保证
 type AddUserRequest struct {
 	Username string `json:"username"`
 	Nickname string `json:"nickname"`
@@ -32,6 +33,9 @@ func (r *AddUserRequest) Validate() error {
 	r.Email = strings.TrimSpace(r.Email)
 	if r.Username == "" {
 		return Error{InvalidArgument, "抱歉，帐号名不能为空"}
+	}
+	if r.RoleId == 0 {
+		return Error{InvalidArgument, "抱歉，role_id不能为空"}
 	}
 	if r.Phone == "" || !PhoneRegexp.MatchString(r.Phone) {
 		return Error{InvalidArgument, "抱歉，手机地址不能为空并且格式要正确"}
@@ -54,7 +58,29 @@ type DeleteUserResponse struct{}
 
 //
 // 更新帐号
-type UpdateUserRequest struct{}
+type UpdateUserRequest struct {
+	UserID   uint64 `json:"user_id"`
+	Nickname string `json:"nickname"`
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+	Status   uint32 `json:"status"`
+}
+
+func (r UpdateUserRequest) Validate() error {
+	r.Phone = strings.TrimSpace(r.Phone)
+	r.Email = strings.TrimSpace(r.Email)
+	r.Nickname = strings.TrimSpace(r.Nickname)
+
+	if r.UserID == 0 {
+		return Error{InvalidArgument, "抱歉，user_id不能为空"}
+	}
+	if r.Phone == "" && r.Email == "" && r.Nickname == "" && r.Status == 0 {
+		return Error{InvalidArgument, "抱歉，更新内容不能为空"}
+	}
+
+	return nil
+}
+
 type UpdateUserResponse struct{}
 
 //

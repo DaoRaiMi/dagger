@@ -10,10 +10,7 @@ func (s Server) AddUserHandler(c *gin.Context) {
 	var err error
 	var req api.AddUserRequest
 
-	if err = c.MustBindWith(&req, binding.JSON); err != nil {
-		api.RespError(c, err)
-		return
-	}
+	_ = c.MustBindWith(&req, binding.JSON)
 
 	if err = req.Validate(); err != nil {
 		api.RespError(c, err)
