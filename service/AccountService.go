@@ -19,4 +19,6 @@ type AccountService interface {
 	Logout(ctx context.Context, req *api.LogoutRequest) (*api.LogoutResponse, error)
 	// 验证用户权限
 	ValidateUserPerm(ctx context.Context, req *api.ValidateUserPermRequest) (*api.ValidateUserPermResponse, error)
+	// 用户列表
+	UserList(ctx context.Context, req *api.UserListRequest) (*api.UserListResponse, error)
 }

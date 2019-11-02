@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/daoraimi/dagger/share"
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -66,7 +67,7 @@ type UpdateUserRequest struct {
 	Status   uint32 `json:"status"`
 }
 
-func (r UpdateUserRequest) Validate() error {
+func (r *UpdateUserRequest) Validate() error {
 	r.Phone = strings.TrimSpace(r.Phone)
 	r.Email = strings.TrimSpace(r.Email)
 	r.Nickname = strings.TrimSpace(r.Nickname)
@@ -136,4 +137,44 @@ type ValidateUserPermRequest struct {
 
 type ValidateUserPermResponse struct {
 	UserID uint64
+}
+
+// 用户列表
+type UserListRequest struct {
+	Username string `form:"username" json:"username"`
+	Nickname string `form:"nickname" json:"nickname"`
+	Phone    string `form:"phone" json:"phone"`
+	Email    string `form:"email" json:"email"`
+	Page     uint32 `form:"page" json:"page"`
+	PageSize uint32 `form:"page_size" json:"page_size"`
+}
+
+func (r *UserListRequest) Validate() error {
+	r.Username = strings.TrimSpace(r.Username)
+	r.Nickname = strings.TrimSpace(r.Nickname)
+	r.Phone = strings.TrimSpace(r.Phone)
+	r.Email = strings.TrimSpace(r.Email)
+
+	if r.Page == 0 {
+		r.Page = share.DefaultPage
+	}
+	if r.PageSize == 0 {
+		r.PageSize = share.DefaultPageSize
+	}
+
+	return nil
+}
+
+type UserBasicInfo struct {
+	UserID   uint64 `json:"user_id"`
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+	RoleID   uint64 `json:"role_id"`
+}
+
+type UserListResponse struct {
+	Total uint32           `json:"total"`
+	List  []*UserBasicInfo `json:"list"`
 }

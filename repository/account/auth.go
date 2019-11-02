@@ -127,6 +127,9 @@ func (a *Repo) Login(ctx context.Context, req *api.LoginRequest) (*api.LoginResp
 		return nil, api.Error{Code: api.InvalidArgument, Msg: "帐号或密码不正确"}
 	}
 
+	// 登录成功后解除计数
+	_, _ = redis.R().Del(share.GetKeyFailedLoginCount(req.Username)).Result()
+
 	// 生成token
 	token, err := GenerateUserToken(user.ID)
 	if err != nil {
@@ -167,4 +170,57 @@ func (a *Repo) Logout(ctx context.Context, req *api.LogoutRequest) (*api.LogoutR
 
 func (a *Repo) ValidateUserPerm(ctx context.Context, req *api.ValidateUserPermRequest) (*api.ValidateUserPermResponse, error) {
 	return &api.ValidateUserPermResponse{}, nil
+}
+
+func (a *Repo) UserList(ctx context.Context, req *api.UserListRequest) (*api.UserListResponse, error) {
+	var total uint32
+	var userList model.DaggerUserList
+
+	query := orm.R().Model(model.DaggerUser{})
+	if req.Username != "" {
+		query = query.Where("`username` = ?", req.Username)
+	}
+
+	if req.Nickname != "" {
+		query = query.Where("`nickname` like ?", "%"+req.Nickname+"%")
+	}
+
+	if req.Phone != "" {
+		query = query.Where("`phone` = ?", req.Phone)
+	}
+
+	if req.Email != "" {
+		query = query.Where("`email` = ?", req.Email)
+	}
+
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	if total == 0 {
+		return &api.UserListResponse{}, nil
+	}
+
+	err = query.Order("`id` DESC").
+		Offset((req.Page - 1) * req.PageSize).
+		Limit(req.PageSize).
+		Find(&userList).
+		Error
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var list []*api.UserBasicInfo
+	for _, item := range userList {
+		list = append(list, &api.UserBasicInfo{
+			UserID:   item.ID,
+			Username: item.Username,
+			Nickname: item.Nickname,
+			Phone:    item.Phone,
+			Email:    item.Email,
+			RoleID:   item.RoleId,
+		})
+	}
+
+	return &api.UserListResponse{Total: total, List: list}, nil
 }
