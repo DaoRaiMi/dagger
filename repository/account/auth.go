@@ -172,7 +172,7 @@ func (a *Repo) ValidateUserPerm(ctx context.Context, req *api.ValidateUserPermRe
 	return &api.ValidateUserPermResponse{}, nil
 }
 
-func (a *Repo) UserList(ctx context.Context, req *api.UserListRequest) (*api.UserListResponse, error) {
+func (a *Repo) ListUser(ctx context.Context, req *api.ListUserRequest) (*api.ListUserResponse, error) {
 	var total uint32
 	var userList model.DaggerUserList
 
@@ -198,7 +198,7 @@ func (a *Repo) UserList(ctx context.Context, req *api.UserListRequest) (*api.Use
 		return nil, errors.WithStack(err)
 	}
 	if total == 0 {
-		return &api.UserListResponse{}, nil
+		return &api.ListUserResponse{}, nil
 	}
 
 	err = query.Order("`id` DESC").
@@ -222,5 +222,5 @@ func (a *Repo) UserList(ctx context.Context, req *api.UserListRequest) (*api.Use
 		})
 	}
 
-	return &api.UserListResponse{Total: total, List: list}, nil
+	return &api.ListUserResponse{Total: total, List: list}, nil
 }

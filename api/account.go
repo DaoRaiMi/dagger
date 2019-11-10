@@ -140,7 +140,7 @@ type ValidateUserPermResponse struct {
 }
 
 // 用户列表
-type UserListRequest struct {
+type ListUserRequest struct {
 	Username string `form:"username" json:"username"`
 	Nickname string `form:"nickname" json:"nickname"`
 	Phone    string `form:"phone" json:"phone"`
@@ -149,7 +149,7 @@ type UserListRequest struct {
 	PageSize uint32 `form:"page_size" json:"page_size"`
 }
 
-func (r *UserListRequest) Validate() error {
+func (r *ListUserRequest) Validate() error {
 	r.Username = strings.TrimSpace(r.Username)
 	r.Nickname = strings.TrimSpace(r.Nickname)
 	r.Phone = strings.TrimSpace(r.Phone)
@@ -174,7 +174,7 @@ type UserBasicInfo struct {
 	RoleID   uint64 `json:"role_id"`
 }
 
-type UserListResponse struct {
+type ListUserResponse struct {
 	Total uint32           `json:"total"`
 	List  []*UserBasicInfo `json:"list"`
 }

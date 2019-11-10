@@ -20,5 +20,5 @@ type AccountService interface {
 	// 验证用户权限
 	ValidateUserPerm(ctx context.Context, req *api.ValidateUserPermRequest) (*api.ValidateUserPermResponse, error)
 	// 用户列表
-	UserList(ctx context.Context, req *api.UserListRequest) (*api.UserListResponse, error)
+	ListUser(ctx context.Context, req *api.ListUserRequest) (*api.ListUserResponse, error)
 }

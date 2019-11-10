@@ -7,7 +7,7 @@ import (
 
 func (s Server) UserListHandler(c *gin.Context) {
 	var err error
-	var req api.UserListRequest
+	var req api.ListUserRequest
 
 	_ = c.ShouldBindQuery(&req)
 
@@ -16,7 +16,7 @@ func (s Server) UserListHandler(c *gin.Context) {
 		return
 	}
 
-	resp, err := s.UserList(c, &req)
+	resp, err := s.ListUser(c, &req)
 	if err != nil {
 		api.RespError(c, err)
 		return
